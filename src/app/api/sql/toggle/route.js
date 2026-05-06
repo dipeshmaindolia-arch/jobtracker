@@ -2,11 +2,19 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
 
-export async function POST() {
+export async function POST(request) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    let dateStr;
+    try {
+      const body = await request.json();
+      dateStr = body.dateStr;
+    } catch (e) {
+      // Ignore if empty body
     }
 
     const user = await prisma.user.findUnique({
@@ -17,9 +25,11 @@ export async function POST() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get today's date (UTC start of day)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Parse the client's local date string ("YYYY-MM-DD") as UTC midnight
+    const today = dateStr ? new Date(dateStr) : new Date();
+    if (!dateStr) {
+      today.setHours(0, 0, 0, 0);
+    }
 
     // Check existing
     const existing = await prisma.dailySql.findUnique({

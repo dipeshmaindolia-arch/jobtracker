@@ -21,7 +21,11 @@ export default function SqlPage() {
 
   const handleToggle = async () => {
     setToggling(true);
-    await fetch("/api/sql/toggle", { method: "POST" });
+    await fetch("/api/sql/toggle", { 
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dateStr: todayStr })
+    });
     await loadData();
     setToggling(false);
   };
@@ -41,10 +45,16 @@ export default function SqlPage() {
   const currentUser = users.find((u) => u.clerkId === currentClerkId);
   const partner = users.find((u) => u.clerkId !== currentClerkId);
 
+  function toLocalISODate(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
   // Generate last 30 days
   const days = [];
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
   for (let i = 29; i >= 0; i--) {
     const d = new Date(today);
@@ -52,7 +62,7 @@ export default function SqlPage() {
     days.push(d);
   }
 
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = toLocalISODate(today);
 
   // Calculate streaks
   function calcStreak(userId) {
@@ -66,7 +76,7 @@ export default function SqlPage() {
     }
 
     while (true) {
-      const ds = checkDate.toISOString().split("T")[0];
+      const ds = toLocalISODate(checkDate);
       if (dates.includes(ds)) {
         streak++;
         checkDate.setDate(checkDate.getDate() - 1);
@@ -147,7 +157,7 @@ export default function SqlPage() {
                   ))}
 
                   {days.map((day) => {
-                    const dateStr = day.toISOString().split("T")[0];
+                    const dateStr = toLocalISODate(day);
                     const isDone = userDates.includes(dateStr);
                     const isToday = dateStr === todayStr;
                     const isFuture = day > today;
