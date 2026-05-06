@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata = {
   title: "Learning Tracker | Keshav & Dipesh",
   description: "Keshav & Dipesh's track to get a Data Analytics job — GFG Puzzles, Daily SQL & Progress",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({ children }) {
